@@ -26,6 +26,7 @@
 -export([account_path/1]).
 -export([account_path/2]).
 -export([make_path/2]).
+-export([urlencode_path/1]).
 
 %%====================================================================
 %% HTTP API functions
@@ -124,9 +125,9 @@ account_path(Path) ->
 	account_path(manta:default_config(), Path).
 
 account_path(#manta_config{subuser=undefined, user=User}, Path) ->
-	<< $/, User/binary, $/, Path/binary >>;
+	urlencode_path(<< $/, User/binary, $/, Path/binary >>);
 account_path(#manta_config{subuser=Subuser, user=User}, Path) ->
-	<< $/, User/binary, $/, Subuser/binary, $/, Path/binary >>.
+	urlencode_path(<< $/, User/binary, $/, Subuser/binary, $/, Path/binary >>).
 
 make_path(Path0, QS0) ->
 	QS1 = [begin
@@ -170,6 +171,27 @@ make_path(Path0, QS0) ->
 			<< Path1/binary, $?, QS4/binary >>
 	end.
 
+urlencode_path(Path) ->
+	{P0, Q0} = cow_http:parse_fullpath(Path),
+	Parts = binary:split(P0, << $/ >>, [global, trim]),
+	P1 = join_path([iolist_to_binary(http_uri:encode(binary_to_list(Part))) || Part <- Parts], <<>>),
+	case Q0 of
+		<<>> ->
+			P1;
+		_ ->
+			<< P1/binary, $?, Q0/binary >>
+	end.
+
 %%%-------------------------------------------------------------------
 %%% Internal functions
 %%%-------------------------------------------------------------------
+
+%% @private
+join_path([<<>> | Parts], Acc) ->
+	join_path(Parts, Acc);
+join_path([Part], Acc) ->
+	<< Acc/binary, $/, Part/binary >>;
+join_path([Part | Parts], Acc) ->
+	join_path(Parts, << Acc/binary, $/, Part/binary >>);
+join_path([], Acc) ->
+	Acc.
