@@ -1,6 +1,6 @@
 [{<<"cowlib">>,".*",
   {git,"git://github.com/ninenines/cowlib.git",
-       {ref,"7d8a571b1e50602d701ca203fbf28036b2cf80f5"}},
+       {ref,"38f9b0cf699cb57aa8384128ca5c34ee93df57a0"}},
   0},
  {<<"dispcount">>,"1.0.2",
   {git,"https://github.com/ferd/dispcount.git",
