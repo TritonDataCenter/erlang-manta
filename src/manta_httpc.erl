@@ -124,10 +124,12 @@ account_headers(Config=#manta_config{agent=UserAgentVal, key=Key, key_id=KeyID},
 account_path(Path) ->
 	account_path(manta:default_config(), Path).
 
-account_path(#manta_config{subuser=undefined, user=User}, Path) ->
+account_path(#manta_config{role=undefined, subuser=undefined, user=User}, Path) ->
 	urlencode_path(<< $/, User/binary, $/, Path/binary >>);
-account_path(#manta_config{subuser=Subuser, user=User}, Path) ->
-	urlencode_path(<< $/, User/binary, $/, Subuser/binary, $/, Path/binary >>).
+account_path(#manta_config{role=undefined, subuser=Subuser, user=User}, Path) ->
+	urlencode_path(<< $/, User/binary, $/, Subuser/binary, $/, Path/binary >>);
+account_path(C=#manta_config{role=Role}, Path) ->
+	account_path(C#manta_config{role=undefined}, make_path(Path, [{<<"role">>, Role}])).
 
 make_path(Path0, QS0) ->
 	QS1 = [begin

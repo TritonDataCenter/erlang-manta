@@ -16,9 +16,10 @@
 	key      = undefined :: undefined | public_key:private_key(),
 	key_file = undefined :: undefined | file:filename(),
 	key_id   = undefined :: undefined | binary(),
-	subuser  = undefined :: undefined | string(),
+	role     = undefined :: undefined | binary(),
+	subuser  = undefined :: undefined | binary(),
 	url      = undefined :: undefined | http:url(),
-	user     = undefined :: undefined | string()
+	user     = undefined :: undefined | binary()
 }).
 
 -define(DEFAULT_TIMEOUT, 60000). % timer:minutes(1)

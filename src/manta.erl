@@ -11,6 +11,7 @@
 -module(manta).
 
 -include("manta.hrl").
+-include_lib("public_key/include/public_key.hrl").
 
 %% API exports
 %%% Directories
@@ -53,6 +54,9 @@
 -export([require/1]).
 -export([start/0]).
 -export([take_value/3]).
+
+%% Internal API
+-export([get_value/3]).
 
 -define(DEFAULT_URL, "https://us-east.manta.joyent.com").
 
@@ -169,7 +173,19 @@ configure(Options) when is_list(Options) ->
 default_config() ->
 	case get(manta_config) of
 		undefined ->
-			#manta_config{};
+			Options = [{K, V} || {K, V} <- [
+				{key_file, os:getenv("MANTA_KEY_FILE")},
+				{role, os:getenv("MANTA_ROLE")},
+				{subuser, os:getenv("MANTA_SUBUSER")},
+				{url, os:getenv("MANTA_URL")},
+				{user, os:getenv("MANTA_USER")}
+			], V =/= false],
+			case new(Options) of
+				{ok, MantaConfig=#manta_config{}} ->
+					MantaConfig;
+				Error ->
+					Error
+			end;
 		MantaConfig ->
 			MantaConfig
 	end.
@@ -180,6 +196,7 @@ default_config() ->
 		Config  :: #manta_config{},
 		Reason  :: term().
 new(Options) when is_list(Options) ->
+	ok = verify_options(Options, []),
 	new(Options, #manta_config{}).
 
 -spec update(Config) -> ok
@@ -239,6 +256,11 @@ take_value(Key, Opts0, Default) ->
 %%% Internal functions
 %%%-------------------------------------------------------------------
 
+%% @private
+-spec bad_options([term()]) -> no_return().
+bad_options(Errors) ->
+	erlang:error({bad_options, Errors}).
+
 %% Faster alternative to proplists:get_value/3.
 %% @private
 get_value(Key, Opts, Default) ->
@@ -256,30 +278,31 @@ new([{key, Key} | Opts], Config) ->
 			KeyError
 	end;
 new([{key_file, KeyFile} | Opts], Config) ->
-	case get_value(key_pass, Opts, undefined) of
-		undefined ->
+	case lists:keytake(key_pass, 1, Opts) of
+		false ->
 			case manta_private_key:decode_file(KeyFile) of
 				{ok, Key} ->
 					new([{key, Key} | Opts], Config#manta_config{key_file=KeyFile});
 				DecodeError ->
 					DecodeError
 			end;
-		KeyPass ->
+		{value, {key_pass, KeyPass}, NewOpts} ->
 			case manta_private_key:decode_file(KeyFile, KeyPass) of
 				{ok, Key} ->
-					new([{key, Key} | Opts], Config#manta_config{key_file=KeyFile});
+					new([{key, Key} | NewOpts], Config#manta_config{key_file=KeyFile});
 				DecodeError ->
 					DecodeError
 			end
 	end;
+new([{role, Role} | Opts], Config) ->
+	Roles = [role_strip(R) || R <- role_split(Role)],
+	new(Opts, Config#manta_config{role=role_join(Roles)});
 new([{subuser, Subuser} | Opts], Config) ->
 	new(Opts, Config#manta_config{subuser=iolist_to_binary(Subuser)});
 new([{url, URL} | Opts], Config) ->
 	new(Opts, Config#manta_config{url=iolist_to_binary(URL)});
 new([{user, User} | Opts], Config) ->
 	new(Opts, Config#manta_config{user=iolist_to_binary(User)});
-new([_ | Opts], Config) ->
-	new(Opts, Config);
 new([], #manta_config{key=undefined}) ->
 	{error, key_required};
 new([], Config=#manta_config{url=undefined}) ->
@@ -288,3 +311,67 @@ new([], #manta_config{user=undefined}) ->
 	{error, user_required};
 new([], Config) ->
 	{ok, Config#manta_config{agent=manta:user_agent()}}.
+
+%% @private
+role_join(Roles) ->
+	<< $,, Role/binary >> = << << $,, R/binary >> || R <- Roles, R =/= <<>> >>,
+	Role.
+
+%% @private
+role_split(Role) ->
+	binary:split(iolist_to_binary(Role), <<",">>, [global, trim]).
+
+%% @private
+role_strip(Role) ->
+	strip_whitespace(Role, <<>>).
+
+%% @private
+strip_whitespace(<< $\n, Rest/binary >>, Acc) ->
+	strip_whitespace(Rest, Acc);
+strip_whitespace(<< $\r, Rest/binary >>, Acc) ->
+	strip_whitespace(Rest, Acc);
+strip_whitespace(<< $\s, Rest/binary >>, Acc) ->
+	strip_whitespace(Rest, Acc);
+strip_whitespace(<< $\t, Rest/binary >>, Acc) ->
+	strip_whitespace(Rest, Acc);
+strip_whitespace(<< C, Rest/binary >>, Acc) ->
+	strip_whitespace(Rest, << Acc/binary, C >>);
+strip_whitespace(<<>>, Acc) ->
+	Acc.
+
+%% @private
+verify_options([{key, Key} | Options], Errors)
+		when is_record(Key, 'DSAPrivateKey')
+		orelse is_record(Key, 'ECPrivateKey')
+		orelse is_record(Key, 'RSAPrivateKey') ->
+	verify_options(Options, Errors);
+verify_options([{key_file, KeyFile} | Options], Errors)
+		when is_binary(KeyFile)
+		orelse is_list(KeyFile) ->
+	verify_options(Options, Errors);
+verify_options([{key_pass, KeyPass} | Options], Errors)
+		when is_binary(KeyPass)
+		orelse is_list(KeyPass) ->
+	verify_options(Options, Errors);
+verify_options([{role, Role} | Options], Errors)
+		when is_binary(Role)
+		orelse is_list(Role) ->
+	verify_options(Options, Errors);
+verify_options([{subuser, Subuser} | Options], Errors)
+		when is_binary(Subuser)
+		orelse is_list(Subuser) ->
+	verify_options(Options, Errors);
+verify_options([{url, URL} | Options], Errors)
+		when is_binary(URL)
+		orelse is_list(URL) ->
+	verify_options(Options, Errors);
+verify_options([{user, User} | Options], Errors)
+		when is_binary(User)
+		orelse is_list(User) ->
+	verify_options(Options, Errors);
+verify_options([Option | Options], Errors) ->
+	verify_options(Options, [Option | Errors]);
+verify_options([], []) ->
+	ok;
+verify_options([], Errors) ->
+	bad_options(Errors).
