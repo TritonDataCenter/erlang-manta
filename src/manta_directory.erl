@@ -2,7 +2,7 @@
 %% vim: ts=4 sw=4 ft=erlang noet
 %%%-------------------------------------------------------------------
 %%% @author Andrew Bennett <andrew@pixid.com>
-%%% @copyright 2014, Andrew Bennett
+%%% @copyright 2014-2015, Andrew Bennett
 %%% @doc
 %%%
 %%% @end
@@ -42,7 +42,7 @@
 	default   = undefined :: undefined | any(),
 	format    = undefined :: undefined | list,
 	pid       = undefined :: undefined | pid(),
-	req_id    = undefined :: undefined | any(),
+	client_id = undefined :: undefined | any(),
 	stream_to = undefined :: undefined | pid()
 }).
 
@@ -50,26 +50,28 @@
 %% manta_handler callbacks
 %%====================================================================
 
-init(ReqId, StreamTo, Format) ->
-	Default = manta_handler:init(ReqId, StreamTo, Format),
+init(ClientId, StreamTo, Format) ->
+	Default = manta_handler:init(ClientId, StreamTo, Format),
 	State = #state{default=Default, format=Format, pid=self(),
-		req_id=ReqId, stream_to=StreamTo},
+		client_id=ClientId, stream_to=StreamTo},
 	State.
 
-handle_response(Response={response, ReqId, Pid, {ok, {Status={200, _}, Headers, Result}}}, State=#state{buffer=Buffer, format=list, pid=Pid, req_id=ReqId, stream_to=StreamTo}) ->
+handle_response(Response={ok, {Status={200, _}, Headers, Result}},
+		State=#state{buffer=Buffer, format=list, pid=Pid,
+		client_id=ClientId, stream_to=StreamTo}) ->
 	case dlhttpc_lib:header_value("content-type", Headers) of
 		"application/x-json-stream; type=directory" ->
 			case Result of
 				_ when is_binary(Result) ->
 					List = parse_response(<< Buffer/binary, Result/binary >>, []),
-					StreamTo ! {response, ReqId, Pid, {ok, {Status, Headers, List}}},
+					StreamTo ! {response, ClientId, Pid, {ok, {Status, Headers, List}}},
 					State;
 				_ ->
-					StreamTo ! Response,
+					StreamTo ! {response, ClientId, Pid, Response},
 					State
 			end;
 		_ ->
-			StreamTo ! Response,
+			StreamTo ! {response, ClientId, Pid, Response},
 			State
 	end;
 handle_response(Response, State=#state{default=Default}) ->
@@ -97,7 +99,7 @@ delete(Pathname, Options) ->
 
 delete(Config=#manta_config{}, Pathname, Opts0) ->
 	{Headers, Opts1} = manta:take_value(headers, Opts0, []),
-	{Timeout, Opts2} = manta:take_value(timeout, Opts1, ?DEFAULT_TIMEOUT),
+	{Timeout, Opts2} = manta:take_value(timeout, Opts1, Config#manta_config.timeout),
 	Path = manta_httpc:make_path(Pathname, []),
 	manta_httpc:request(Config, Path, delete, Headers, [], Timeout, Opts2).
 
@@ -114,7 +116,7 @@ head(Config=#manta_config{}, Pathname, Opts0) ->
 	{Limit, Opts1} = manta:take_value(limit, Opts0, ?MAX_LIMIT),
 	{Marker, Opts2} = manta:take_value(marker, Opts1, undefined),
 	{Headers, Opts3} = manta:take_value(headers, Opts2, []),
-	{Timeout, Opts4} = manta:take_value(timeout, Opts3, ?DEFAULT_TIMEOUT),
+	{Timeout, Opts4} = manta:take_value(timeout, Opts3, Config#manta_config.timeout),
 	Path = manta_httpc:make_path(Pathname, [{limit, Limit}, {marker, Marker}]),
 	manta_httpc:request(Config, Path, head, Headers, [], Timeout, Opts4).
 
@@ -131,7 +133,7 @@ list(Config=#manta_config{}, Pathname, Opts0) ->
 	{Limit, Opts1} = manta:take_value(limit, Opts0, ?MAX_LIMIT),
 	{Marker, Opts2} = manta:take_value(marker, Opts1, undefined),
 	{Headers, Opts3} = manta:take_value(headers, Opts2, []),
-	{Timeout, Opts4} = manta:take_value(timeout, Opts3, ?DEFAULT_TIMEOUT),
+	{Timeout, Opts4} = manta:take_value(timeout, Opts3, Config#manta_config.timeout),
 	Path = manta_httpc:make_path(Pathname, [{limit, Limit}, {marker, Marker}]),
 	manta_httpc:request(Config, Path, get, Headers, [], Timeout, Opts4).
 
@@ -143,7 +145,7 @@ put(Pathname, Options) ->
 
 put(Config=#manta_config{}, Pathname, Opts0) ->
 	{Headers0, Opts1} = manta:take_value(headers, Opts0, []),
-	{Timeout, Opts2} = manta:take_value(timeout, Opts1, ?DEFAULT_TIMEOUT),
+	{Timeout, Opts2} = manta:take_value(timeout, Opts1, Config#manta_config.timeout),
 	Path = manta_httpc:make_path(Pathname, []),
 	Headers1 = [
 		{<<"Content-Type">>, <<"application/json; type=directory">>}

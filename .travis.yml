@@ -1,0 +1,15 @@
+language: erlang
+
+otp_release:
+	- 17.0
+	- 17.3
+	- 17.4
+	- 18.0
+
+notifications:
+	email: false
+
+before_script:
+	- curl --silent "$MANTA_KEY_URL" --output "$MANTA_KEY_FILE"
+
+script: "make tests"

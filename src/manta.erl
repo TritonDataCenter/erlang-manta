@@ -2,7 +2,7 @@
 %% vim: ts=4 sw=4 ft=erlang noet
 %%%-------------------------------------------------------------------
 %%% @author Andrew Bennett <andrew@pixid.com>
-%%% @copyright 2014, Andrew Bennett
+%%% @copyright 2014-2015, Andrew Bennett
 %%% @doc
 %%%
 %%% @end
@@ -29,9 +29,18 @@
 -export([delete_object/1]).
 -export([delete_object/2]).
 -export([delete_object/3]).
+-export([get_metadata/1]).
+-export([get_metadata/2]).
+-export([get_metadata/3]).
 -export([get_object/1]).
 -export([get_object/2]).
 -export([get_object/3]).
+-export([object_path/1]).
+-export([object_path/2]).
+-export([object_path/3]).
+-export([object_url/1]).
+-export([object_url/2]).
+-export([object_url/3]).
 -export([put_metadata/2]).
 -export([put_metadata/3]).
 -export([put_metadata/4]).
@@ -39,9 +48,9 @@
 -export([put_object/3]).
 -export([put_object/4]).
 %%% SnapLinks
--export([put_snap_link/2]).
--export([put_snap_link/3]).
--export([put_snap_link/4]).
+-export([put_snaplink/2]).
+-export([put_snaplink/3]).
+-export([put_snaplink/4]).
 
 %% Config API exports
 -export([configure/1]).
@@ -112,6 +121,15 @@ delete_object(Config=#manta_config{}, Pathname, Opts0) ->
 	Opts1 = lists:keystore(handler, 1, Opts0, {handler, manta_handler}),
 	manta_object:delete(Config, Pathname, Opts1).
 
+get_metadata(Pathname) ->
+	get_metadata(Pathname, []).
+
+get_metadata(Pathname, Options) ->
+	get_metadata(default_config(), Pathname, Options).
+
+get_metadata(Config=#manta_config{}, Pathname, Options) ->
+	manta_object:head(Config, Pathname, Options).
+
 get_object(Pathname) ->
 	get_object(Pathname, []).
 
@@ -121,6 +139,24 @@ get_object(Pathname, Options) ->
 get_object(Config=#manta_config{}, Pathname, Opts0) ->
 	Opts1 = lists:keystore(handler, 1, Opts0, {handler, manta_handler}),
 	manta_object:get(Config, Pathname, Opts1).
+
+object_path(Pathname) ->
+	object_path(Pathname, []).
+
+object_path(Pathname, QueryString) ->
+	object_path(default_config(), Pathname, QueryString).
+
+object_path(Config=#manta_config{}, Pathname, QueryString) ->
+	manta_object:path(Config, Pathname, QueryString).
+
+object_url(Pathname) ->
+	object_url(Pathname, []).
+
+object_url(Pathname, QueryString) ->
+	object_url(default_config(), Pathname, QueryString).
+
+object_url(Config=#manta_config{}, Pathname, QueryString) ->
+	manta_object:url(Config, Pathname, QueryString).
 
 put_metadata(Pathname, Metadata) ->
 	put_metadata(Pathname, Metadata, []).
@@ -143,15 +179,15 @@ put_object(Config=#manta_config{}, Pathname, Body, Opts0) ->
 
 %%% SnapLinks
 
-put_snap_link(Pathname, Location) ->
-	put_snap_link(Pathname, Location, []).
+put_snaplink(Pathname, Location) ->
+	put_snaplink(Pathname, Location, []).
 
-put_snap_link(Pathname, Location, Options) ->
-	put_snap_link(default_config(), Pathname, Location, Options).
+put_snaplink(Pathname, Location, Options) ->
+	put_snaplink(default_config(), Pathname, Location, Options).
 
-put_snap_link(Config=#manta_config{}, Pathname, Location, Opts0) ->
+put_snaplink(Config=#manta_config{}, Pathname, Location, Opts0) ->
 	Opts1 = lists:keystore(handler, 1, Opts0, {handler, manta_handler}),
-	manta_snap_link:put(Config, Pathname, Location, Opts1).
+	manta_snaplink:put(Config, Pathname, Location, Opts1).
 
 %%====================================================================
 %% Config API functions
@@ -303,6 +339,14 @@ new([{url, URL} | Opts], Config) ->
 	new(Opts, Config#manta_config{url=iolist_to_binary(URL)});
 new([{user, User} | Opts], Config) ->
 	new(Opts, Config#manta_config{user=iolist_to_binary(User)});
+new([{attempts, Attempts} | Opts], Config) ->
+	new(Opts, Config#manta_config{attempts=Attempts});
+new([{attempt_timeout, Timeout} | Opts], Config) ->
+	new(Opts, Config#manta_config{attempt_timeout=Timeout});
+new([{connect_timeout, Timeout} | Opts], Config) ->
+	new(Opts, Config#manta_config{connect_timeout=Timeout});
+new([{timeout, Timeout} | Opts], Config) ->
+	new(Opts, Config#manta_config{timeout=Timeout});
 new([], #manta_config{key=undefined}) ->
 	{error, key_required};
 new([], Config=#manta_config{url=undefined}) ->
@@ -368,6 +412,22 @@ verify_options([{url, URL} | Options], Errors)
 verify_options([{user, User} | Options], Errors)
 		when is_binary(User)
 		orelse is_list(User) ->
+	verify_options(Options, Errors);
+verify_options([{attempts, Attempts} | Options], Errors)
+		when is_integer(Attempts)
+		andalso Attempts > 0 ->
+	verify_options(Options, Errors);
+verify_options([{attempt_timeout, Timeout} | Options], Errors)
+		when is_integer(Timeout)
+		andalso Timeout > 0 ->
+	verify_options(Options, Errors);
+verify_options([{connect_timeout, Timeout} | Options], Errors)
+		when (is_integer(Timeout) andalso Timeout > 0)
+		orelse Timeout =/= infinity ->
+	verify_options(Options, Errors);
+verify_options([{timeout, Timeout} | Options], Errors)
+		when (is_integer(Timeout) andalso Timeout > 0)
+		orelse Timeout =/= infinity ->
 	verify_options(Options, Errors);
 verify_options([Option | Options], Errors) ->
 	verify_options(Options, [Option | Errors]);

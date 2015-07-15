@@ -2,7 +2,7 @@
 %% vim: ts=4 sw=4 ft=erlang noet
 %%%-------------------------------------------------------------------
 %%% @author Andrew Bennett <andrew@pixid.com>
-%%% @copyright 2014, Andrew Bennett
+%%% @copyright 2014-2015, Andrew Bennett
 %%% @doc
 %%%
 %%% @end
@@ -12,18 +12,15 @@
 
 -include("manta.hrl").
 
--callback init(ReqId, StreamTo, InitialState) -> State
+-callback init(ClientId, StreamTo, InitialState) -> State
 	when
-		ReqId        :: term(),
+		ClientId     :: any(),
 		StreamTo     :: pid(),
 		InitialState :: any(),
 		State        :: any().
 -callback handle_response(Response, State) -> NewState
 	when
-		Response :: {response, ReqId, Pid, Result},
-		ReqId    :: term(),
-		Pid      :: pid(),
-		Result   :: any(),
+		Response :: any(),
 		State    :: any(),
 		NewState :: any().
 -callback handle_download(Download, State) -> NewState
@@ -46,7 +43,7 @@
 	buffer    = <<>>      :: binary(),
 	error     = false     :: boolean(),
 	pid       = undefined :: undefined | pid(),
-	req_id    = undefined :: undefined | any(),
+	client_id = undefined :: undefined | any(),
 	stream_to = undefined :: undefined | pid()
 }).
 
@@ -54,40 +51,42 @@
 %% manta_handler callbacks
 %%====================================================================
 
-init(ReqId, StreamTo, _InitialState) ->
-	State = #state{pid=self(), req_id=ReqId, stream_to=StreamTo},
+init(ClientId, StreamTo, _InitialState) ->
+	State = #state{pid=self(), client_id=ClientId, stream_to=StreamTo},
 	State.
 
-handle_response(Response={response, ReqId, Pid, {ok, {Status={Code, _}, Headers, Result}}},
-		State=#state{buffer=Buffer, pid=Pid, req_id=ReqId, stream_to=StreamTo})
+handle_response(Response={ok, {Status={Code, _}, Headers, Result}},
+		State=#state{buffer=Buffer, pid=Pid, client_id=ClientId,
+		stream_to=StreamTo})
 			when Code >= 400 ->
 	case dlhttpc_lib:header_value("content-type", Headers) of
 		"application/json" ->
 			case Result of
 				_ when is_binary(Result) ->
 					Term = parse_response_single(<< Buffer/binary, Result/binary >>),
-					StreamTo ! {response, ReqId, Pid, {ok, {Status, Headers, Term}}},
+					StreamTo ! {response, ClientId, Pid, {ok, {Status, Headers, Term}}},
 					State#state{error=true};
 				_ ->
-					StreamTo ! Response,
+					StreamTo ! {response, ClientId, Pid, Response},
 					State#state{error=true}
 			end;
 		"application/x-json-stream" ++ _ ->
 			case Result of
 				_ when is_binary(Result) ->
 					List = parse_response(<< Buffer/binary, Result/binary >>, []),
-					StreamTo ! {response, ReqId, Pid, {ok, {Status, Headers, List}}},
+					StreamTo ! {response, ClientId, Pid, {ok, {Status, Headers, List}}},
 					State#state{error=true};
 				_ ->
-					StreamTo ! Response,
+					StreamTo ! {response, ClientId, Pid, Response},
 					State#state{error=true}
 			end;
 		_ ->
-			StreamTo ! Response,
+			StreamTo ! {response, ClientId, Pid, Response},
 			State#state{error=true}
 	end;
-handle_response(Response, State=#state{stream_to=StreamTo}) ->
-	StreamTo ! Response,
+handle_response(Response, State=#state{stream_to=StreamTo, pid=Pid,
+		client_id=ClientId}) ->
+	StreamTo ! {response, ClientId, Pid, Response},
 	State.
 
 handle_download({body_part, Pid, Data}, State=#state{buffer=Buffer, error=true, pid=Pid}) ->
