@@ -10,6 +10,6 @@ notifications:
 	email: false
 
 before_script:
-	- curl --silent "$MANTA_KEY_URL" --output "$MANTA_KEY_FILE"
+	- "curl --silent \"$MANTA_KEY_URL\" --output \"$MANTA_KEY_FILE\""
 
 script: "make tests"
