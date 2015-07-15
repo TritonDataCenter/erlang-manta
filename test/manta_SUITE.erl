@@ -48,7 +48,7 @@ groups() ->
 init_per_suite(Config) ->
 	ok = manta:start(),
 	MantaOptions = [
-		{key_file, os:getenv("MANTA_KEY_FILE", filename:join([priv_dir(), "test.pem"]))},
+		{key_file, os:getenv("MANTA_KEY_FILE")},
 		{subuser, os:getenv("MANTA_SUBUSER")},
 		{user, os:getenv("MANTA_USER")}
 	],
@@ -188,17 +188,3 @@ rm_rf(Directory) ->
 		end
 	end || {_, {Type, Path}} <- ltree(Directory)],
 	ok.
-
-%% @private
-priv_dir() ->
-	case code:priv_dir(manta) of
-		{error, bad_name} ->
-			case code:which(?MODULE) of
-				Filename when is_list(Filename) ->
-					filename:join([filename:dirname(Filename), "../priv"]);
-				_ ->
-					"../priv"
-			end;
-		Dir ->
-			Dir
-	end.
