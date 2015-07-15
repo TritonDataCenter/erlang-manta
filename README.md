@@ -1,6 +1,8 @@
 manta
 =====
 
+[![Build Status](https://travis-ci.org/potatosalad/erlang-manta.png?branch=master)](https://travis-ci.org/potatosalad/erlang-manta)
+
 Erlang Manta Client
 
 Build
