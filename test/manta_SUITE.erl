@@ -148,8 +148,8 @@ manta_snaplinks(Config) ->
 manta_jobs(Config) ->
 	manta:configure(?config(manta_options, Config)),
 	MantaCaseDir = ?MANTA_CASE_DIR,
-	Body0 = crypto:strong_rand_bytes(random:uniform(64)),
-	Body1 = crypto:strong_rand_bytes(random:uniform(64)),
+	Body0 = ?BASE64URL_ENCODE(crypto:strong_rand_bytes(random:uniform(64))),
+	Body1 = ?BASE64URL_ENCODE(crypto:strong_rand_bytes(random:uniform(64))),
 	File0 = filename:join([MantaCaseDir, <<"j">>]),
 	File1 = filename:join([MantaCaseDir, <<"k">>]),
 	Size0 = byte_size(Body0),
@@ -168,7 +168,6 @@ manta_jobs(Config) ->
 	}),
 	JobPath = list_to_binary(dlhttpc_lib:header_value("Location", H)),
 	[<<>>, << $/, JobId/binary >>] = binary:split(JobPath, manta:object_path(<<"~~/jobs">>)),
-	timer:sleep(timer:seconds(2)),
 	{ok, {{204, _}, _, _}} = manta:add_job_inputs(JobPath, [File0, File1]),
 	{ok, {{200, _}, _, L}} = manta:list_jobs([{state, <<"running">>}]),
 	true = lists:any(fun(#{ <<"name">> := JobName }) ->
