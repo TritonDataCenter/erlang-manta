@@ -168,6 +168,7 @@ manta_jobs(Config) ->
 	}),
 	JobPath = list_to_binary(dlhttpc_lib:header_value("Location", H)),
 	[<<>>, << $/, JobId/binary >>] = binary:split(JobPath, manta:object_path(<<"~~/jobs">>)),
+	timer:sleep(timer:seconds(2)),
 	{ok, {{204, _}, _, _}} = manta:add_job_inputs(JobPath, [File0, File1]),
 	{ok, {{200, _}, _, L}} = manta:list_jobs([{state, <<"running">>}]),
 	true = lists:any(fun(#{ <<"name">> := JobName }) ->
