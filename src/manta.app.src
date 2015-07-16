@@ -2,7 +2,7 @@
 %% vim: ts=4 sw=4 ft=erlang noet
 {application, manta, [
 	{description, "Erlang Manta Client"},
-	{vsn, "0.1.3"},
+	{vsn, "1.0.0"},
 	{id, "git"},
 	{registered, []},
 	{applications, [
