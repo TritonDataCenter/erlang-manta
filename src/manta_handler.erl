@@ -104,7 +104,7 @@ terminate(_State) ->
 
 %% @private
 parse_response(Body, Acc) ->
-	case manta_json_stream:decode(Body) of
+	case manta_json_stream:decode(Body, [return_maps]) of
 		{true, Term, Rest} ->
 			parse_response(Rest, [Term | Acc]);
 		false ->
@@ -113,7 +113,7 @@ parse_response(Body, Acc) ->
 
 %% @private
 parse_response_single(Body) ->
-	case manta_json_stream:decode(Body) of
+	case manta_json_stream:decode(Body, [return_maps]) of
 		{true, Term, _Rest} ->
 			Term;
 		false ->
@@ -122,7 +122,7 @@ parse_response_single(Body) ->
 
 %% @private
 parse_body_part(Body, State) ->
-	case manta_json_stream:decode(Body) of
+	case manta_json_stream:decode(Body, [return_maps]) of
 		{true, Term, Rest} ->
 			State#state.stream_to ! {body_part, State#state.pid, Term},
 			parse_body_part(Rest, State);

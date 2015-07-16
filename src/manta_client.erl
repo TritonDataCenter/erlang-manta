@@ -45,7 +45,7 @@ request(URL, Method, Headers, Body, Timeout, Opts) ->
 %% @private
 init(Parent, URL, Method, Headers, Body, Timeout, Opts0) ->
 	{Handler, Opts1} = manta:take_value(handler, Opts0, undefined),
-	{State, Opts2} = manta:take_value(state, Opts1, undefined),
+	{State, Opts2} = manta:take_value(handler_state, Opts1, undefined),
 	{Attempts, Opts3} = manta:take_value(attempts, Opts2, ?DEFAULT_ATTEMPTS),
 	{AttemptTimeout, Opts4} = manta:take_value(attempt_timeout, Opts3, ?DEFAULT_ATTEMPT_TIMEOUT),
 	StreamTo = proplists:get_value(stream_to, Opts4),

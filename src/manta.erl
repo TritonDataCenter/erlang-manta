@@ -51,6 +51,37 @@
 -export([put_snaplink/2]).
 -export([put_snaplink/3]).
 -export([put_snaplink/4]).
+%%% Jobs
+-export([add_job_inputs/2]).
+-export([add_job_inputs/3]).
+-export([add_job_inputs/4]).
+-export([cancel_job/1]).
+-export([cancel_job/2]).
+-export([cancel_job/3]).
+-export([create_job/1]).
+-export([create_job/2]).
+-export([create_job/3]).
+-export([end_job_input/1]).
+-export([end_job_input/2]).
+-export([end_job_input/3]).
+-export([get_job/1]).
+-export([get_job/2]).
+-export([get_job/3]).
+-export([get_job_errors/1]).
+-export([get_job_errors/2]).
+-export([get_job_errors/3]).
+-export([get_job_failures/1]).
+-export([get_job_failures/2]).
+-export([get_job_failures/3]).
+-export([get_job_input/1]).
+-export([get_job_input/2]).
+-export([get_job_input/3]).
+-export([get_job_output/1]).
+-export([get_job_output/2]).
+-export([get_job_output/3]).
+-export([list_jobs/0]).
+-export([list_jobs/1]).
+-export([list_jobs/2]).
 
 %% Config API exports
 -export([configure/1]).
@@ -66,8 +97,6 @@
 
 %% Internal API
 -export([get_value/3]).
-
--define(DEFAULT_URL, "https://us-east.manta.joyent.com").
 
 %%====================================================================
 %% API functions
@@ -96,7 +125,7 @@ list_directory(Pathname, Options) ->
 
 list_directory(Config=#manta_config{}, Pathname, Opts0) ->
 	Opts1 = lists:keystore(handler, 1, Opts0, {handler, manta_directory}),
-	Opts2 = lists:keystore(state, 1, Opts1, {state, list}),
+	Opts2 = lists:keystore(handler_state, 1, Opts1, {handler_state, list}),
 	manta_directory:list(Config, Pathname, Opts2).
 
 put_directory(Pathname) ->
@@ -188,6 +217,114 @@ put_snaplink(Pathname, Location, Options) ->
 put_snaplink(Config=#manta_config{}, Pathname, Location, Opts0) ->
 	Opts1 = lists:keystore(handler, 1, Opts0, {handler, manta_handler}),
 	manta_snaplink:put(Config, Pathname, Location, Opts1).
+
+%%% Jobs
+
+add_job_inputs(JobPath, Inputs) ->
+	add_job_inputs(JobPath, Inputs, []).
+
+add_job_inputs(JobPath, Inputs, Options) ->
+	add_job_inputs(default_config(), JobPath, Inputs, Options).
+
+add_job_inputs(Config=#manta_config{}, JobPath, Inputs, Opts0) ->
+	Opts1 = lists:keystore(handler, 1, Opts0, {handler, manta_handler}),
+	manta_job:add_inputs(Config, JobPath, Inputs, Opts1).
+
+cancel_job(JobPath) ->
+	cancel_job(JobPath, []).
+
+cancel_job(JobPath, Options) ->
+	cancel_job(default_config(), JobPath, Options).
+
+cancel_job(Config=#manta_config{}, JobPath, Opts0) ->
+	Opts1 = lists:keystore(handler, 1, Opts0, {handler, manta_handler}),
+	manta_job:cancel(Config, JobPath, Opts1).
+
+create_job(Job) ->
+	create_job(Job, []).
+
+create_job(Job, Options) ->
+	create_job(default_config(), Job, Options).
+
+create_job(Config=#manta_config{}, Job, Opts0) ->
+	Opts1 = lists:keystore(handler, 1, Opts0, {handler, manta_handler}),
+	manta_job:create(Config, Job, Opts1).
+
+end_job_input(JobPath) ->
+	end_job_input(JobPath, []).
+
+end_job_input(JobPath, Options) ->
+	end_job_input(default_config(), JobPath, Options).
+
+end_job_input(Config=#manta_config{}, JobPath, Opts0) ->
+	Opts1 = lists:keystore(handler, 1, Opts0, {handler, manta_handler}),
+	manta_job:end_input(Config, JobPath, Opts1).
+
+get_job(JobPath) ->
+	get_job(JobPath, []).
+
+get_job(JobPath, Options) ->
+	get_job(default_config(), JobPath, Options).
+
+get_job(Config=#manta_config{}, JobPath, Opts0) ->
+	Opts1 = lists:keystore(handler, 1, Opts0, {handler, manta_job}),
+	Opts2 = lists:keystore(handler_state, 1, Opts1, {handler_state, get_job}),
+	manta_job:get(Config, JobPath, Opts2).
+
+get_job_errors(JobPath) ->
+	get_job_errors(JobPath, []).
+
+get_job_errors(JobPath, Options) ->
+	get_job_errors(default_config(), JobPath, Options).
+
+get_job_errors(Config=#manta_config{}, JobPath, Opts0) ->
+	Opts1 = lists:keystore(handler, 1, Opts0, {handler, manta_job}),
+	Opts2 = lists:keystore(handler_state, 1, Opts1, {handler_state, get_job_errors}),
+	manta_job:get_errors(Config, JobPath, Opts2).
+
+get_job_failures(JobPath) ->
+	get_job_failures(JobPath, []).
+
+get_job_failures(JobPath, Options) ->
+	get_job_failures(default_config(), JobPath, Options).
+
+get_job_failures(Config=#manta_config{}, JobPath, Opts0) ->
+	Opts1 = lists:keystore(handler, 1, Opts0, {handler, manta_job}),
+	Opts2 = lists:keystore(handler_state, 1, Opts1, {handler_state, get_job_lines}),
+	manta_job:get_failures(Config, JobPath, Opts2).
+
+get_job_input(JobPath) ->
+	get_job_input(JobPath, []).
+
+get_job_input(JobPath, Options) ->
+	get_job_input(default_config(), JobPath, Options).
+
+get_job_input(Config=#manta_config{}, JobPath, Opts0) ->
+	Opts1 = lists:keystore(handler, 1, Opts0, {handler, manta_job}),
+	Opts2 = lists:keystore(handler_state, 1, Opts1, {handler_state, get_job_lines}),
+	manta_job:get_input(Config, JobPath, Opts2).
+
+get_job_output(JobPath) ->
+	get_job_output(JobPath, []).
+
+get_job_output(JobPath, Options) ->
+	get_job_output(default_config(), JobPath, Options).
+
+get_job_output(Config=#manta_config{}, JobPath, Opts0) ->
+	Opts1 = lists:keystore(handler, 1, Opts0, {handler, manta_job}),
+	Opts2 = lists:keystore(handler_state, 1, Opts1, {handler_state, get_job_lines}),
+	manta_job:get_output(Config, JobPath, Opts2).
+
+list_jobs() ->
+	list_jobs([]).
+
+list_jobs(Options) ->
+	list_jobs(default_config(), Options).
+
+list_jobs(Config=#manta_config{}, Opts0) ->
+	Opts1 = lists:keystore(handler, 1, Opts0, {handler, manta_job}),
+	Opts2 = lists:keystore(handler_state, 1, Opts1, {handler_state, list_jobs}),
+	manta_job:list(Config, Opts2).
 
 %%====================================================================
 %% Config API functions

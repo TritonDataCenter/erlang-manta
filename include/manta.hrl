@@ -15,6 +15,7 @@
 -define(DEFAULT_ATTEMPT_TIMEOUT,  2000). % timer:seconds(2)
 -define(DEFAULT_CONNECT_TIMEOUT,  5000). % timer:seconds(5)
 -define(DEFAULT_TIMEOUT,         60000). % timer:minutes(1)
+-define(DEFAULT_URL,             "https://us-east.manta.joyent.com").
 
 -record(manta_config, {
 	agent    = undefined :: undefined | binary(),
