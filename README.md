@@ -1,7 +1,7 @@
 manta
 =====
 
-[![Build Status](https://travis-ci.org/potatosalad/erlang-manta.png?branch=master)](https://travis-ci.org/potatosalad/erlang-manta)
+[![Build Status](https://travis-ci.org/joyent/erlang-manta.png?branch=master)](https://travis-ci.org/joyent/erlang-manta)
 
 Erlang Manta Client
 
