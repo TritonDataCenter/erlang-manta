@@ -1,4 +1,4 @@
-.PHONY: deps compile rel
+.PHONY: varcheck deps compile rel
 
 REBAR3_URL=https://s3.amazonaws.com/rebar3/rebar3
 
@@ -24,12 +24,12 @@ else
   PKG_NAME_VER := $(SHORTSHA)
 endif
 
-all: compile
+all: varcheck compile
 
 cover: test
 	${REBAR3} cover
 
-compile: deps
+compile: varcheck deps
 	${REBAR3} compile
 
 clean:
@@ -64,3 +64,6 @@ package: compile
 
 package-clean:
 	@rm -f erlang-manta-*.tgz
+
+varcheck:
+	$(if $(REBAR3),,$(error "Rebar3 is needed for the build, download from $(REBAR3_URL)"))
