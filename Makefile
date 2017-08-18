@@ -1,15 +1,66 @@
-PROJECT = manta
-COMPILE_FIRST = manta_handler
-DEPS = cowlib dlhttpc jsx
-include erlang.mk
+.PHONY: deps compile rel
 
-otp_release = $(shell erl -noshell -eval 'io:fwrite("~s\n", [erlang:system_info(otp_release)]).' -s erlang halt)
-otp_ge_17 = $(shell echo $(otp_release) | grep -q -E "^[[:digit:]]+$$" && echo true)
-ifeq ($(otp_ge_17),true)
-	otp_ge_18 = $(shell [ $(otp_release) -ge "18" ] && echo true)
+REBAR3_URL=https://s3.amazonaws.com/rebar3/rebar3
+
+# Default to rebar on PATH
+REBAR3 ?= $(shell which rebar3)
+
+# If no rebar3 on PATH, then try the current directory
+ifeq ($(REBAR3),)
+ifeq ($(wildcard rebar3),rebar3)
+REBAR3 = $(CURDIR)/rebar3
+endif
 endif
 
-ifeq ($(otp_ge_18),true)
-	ERLC_OPTS += -Dtime_correction=1
-	TEST_ERLC_OPTS += -Dtime_correction=1
+DIALYZER_APPS = kernel stdlib erts sasl eunit syntax_tools compiler crypto
+DEP_DIR = "_build/lib"
+SHORTSHA = `git rev-parse --short HEAD`
+PKGOS ?= $(shell uname -s)
+
+ifeq ($(PKGOS),SunOS)
+  PKGOS=sunos
+  PKG_NAME_VER := $(SHORTSHA)-$(PKGOS)
+else
+  PKG_NAME_VER := $(SHORTSHA)
 endif
+
+all: compile
+
+cover: test
+	${REBAR3} cover
+
+compile: deps
+	${REBAR3} compile
+
+clean:
+	${REBAR3} clean
+
+rel: compile
+	${REBAR3} release
+
+stage: compile
+	${REBAR3} release -d
+
+test: ct
+
+ct:
+	${REBAR3} ct
+
+docs:
+	${REBAR3} doc skip_deps=true
+
+xref: compile
+	${REBAR3} xref skip_deps=true
+
+dialyzer: compile
+	${REBAR3} dialyzer
+
+package: compile
+	@rm -rf _build/prod/rel
+	${REBAR3} as prod release
+	@cd _build/prod/rel && mv erlang-manta erlang-manta-${SHORTSHA} && tar -czf erlang-manta-${PKG_NAME_VER}.tgz erlang-manta-${SHORTSHA}
+	@cp _build/prod/rel/erlang-manta-${PKG_NAME_VER}.tgz .
+	@echo "package is erlang-manta-${PKG_NAME_VER}.tgz"
+
+package-clean:
+	@rm -f erlang-manta-*.tgz

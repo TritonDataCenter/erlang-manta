@@ -1,0 +1,16 @@
+{"1.1.0",
+[{<<"cowlib">>,{pkg,<<"cowlib">>,<<"1.3.0">>},0},
+ {<<"dispcount">>,
+  {git,"https://github.com/ferd/dispcount.git",
+       {ref,"192139f5c1bbd32245f3986d4b1bfd1e7c1ddf9f"}},
+  1},
+ {<<"dlhttpc">>,
+  {git,"git://github.com/ferd/dlhttpc.git",
+       {ref,"a7394f3cdf5def46f186b135451d3134d28df816"}},
+  0},
+ {<<"jsx">>,{pkg,<<"jsx">>,<<"2.8.2">>},0}]}.
+[
+{pkg_hash,[
+ {<<"cowlib">>, <<"6C80CA7F2863C0D7A21C946312BAF473432B56A79E46E20BC27A3BAC07C40439">>},
+ {<<"jsx">>, <<"7ACC7D785B5ABE8A6E9ADBDE926A24E481F29956DD8B4DF49E3E4E7BCC92A018">>}]}
+].
