@@ -1,4 +1,4 @@
-.PHONY: varcheck deps compile rel
+.PHONY: varcheck compile rel
 
 REBAR3_URL=https://s3.amazonaws.com/rebar3/rebar3
 
@@ -29,7 +29,7 @@ all: varcheck compile
 cover: test
 	${REBAR3} cover
 
-compile: varcheck deps
+compile: varcheck
 	${REBAR3} compile
 
 clean:
@@ -47,7 +47,7 @@ ct:
 	${REBAR3} ct
 
 docs:
-	${REBAR3} doc skip_deps=true
+	${REBAR3} edoc skip_deps=true
 
 xref: compile
 	${REBAR3} xref skip_deps=true
