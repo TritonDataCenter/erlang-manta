@@ -14,26 +14,18 @@
 -include("manta.hrl").
 
 %% manta_handler callbacks
--export([init/3]).
--export([handle_response/2]).
--export([handle_download/2]).
--export([terminate/1]).
+-export([init/3,
+		 handle_response/2,
+		 handle_download/2,
+		 terminate/1]).
 
 %% API exports
--export([delete/1]).
--export([delete/2]).
--export([delete/3]).
--export([head/0]).
--export([head/1]).
--export([head/2]).
--export([head/3]).
--export([list/0]).
--export([list/1]).
--export([list/2]).
--export([list/3]).
--export([put/1]).
--export([put/2]).
--export([put/3]).
+-export([delete/3,
+		 head/3,
+		 list/3,
+		 put/3]).
+
+-ignore_xref({head,3}).
 
 -define(MAX_LIMIT, 1000).
 
@@ -91,26 +83,11 @@ terminate(#state{default=Default}) ->
 %% API functions
 %%====================================================================
 
-delete(Pathname) ->
-	?MODULE:delete(Pathname, []).
-
-delete(Pathname, Options) ->
-	?MODULE:delete(manta:default_config(), Pathname, Options).
-
 delete(Config=#manta_config{}, Pathname, Opts0) ->
 	{Headers, Opts1} = manta:take_value(headers, Opts0, []),
 	{Timeout, Opts2} = manta:take_value(timeout, Opts1, Config#manta_config.timeout),
 	Path = manta_httpc:make_path(Pathname, []),
 	manta_httpc:request(Config, Path, delete, Headers, [], Timeout, Opts2).
-
-head() ->
-	?MODULE:head(<<>>).
-
-head(Pathname) ->
-	?MODULE:head(Pathname, []).
-
-head(Pathname, Options) ->
-	?MODULE:head(manta:default_config(), Pathname, Options).
 
 head(Config=#manta_config{}, Pathname, Opts0) ->
 	{Limit, Opts1} = manta:take_value(limit, Opts0, ?MAX_LIMIT),
@@ -120,15 +97,6 @@ head(Config=#manta_config{}, Pathname, Opts0) ->
 	Path = manta_httpc:make_path(Pathname, [{limit, Limit}, {marker, Marker}]),
 	manta_httpc:request(Config, Path, head, Headers, [], Timeout, Opts4).
 
-list() ->
-	?MODULE:list(<<>>).
-
-list(Pathname) ->
-	?MODULE:list(Pathname, []).
-
-list(Pathname, Options) ->
-	?MODULE:list(manta:default_config(), Pathname, Options).
-
 list(Config=#manta_config{}, Pathname, Opts0) ->
 	{Limit, Opts1} = manta:take_value(limit, Opts0, ?MAX_LIMIT),
 	{Marker, Opts2} = manta:take_value(marker, Opts1, undefined),
@@ -136,12 +104,6 @@ list(Config=#manta_config{}, Pathname, Opts0) ->
 	{Timeout, Opts4} = manta:take_value(timeout, Opts3, Config#manta_config.timeout),
 	Path = manta_httpc:make_path(Pathname, [{limit, Limit}, {marker, Marker}]),
 	manta_httpc:request(Config, Path, get, Headers, [], Timeout, Opts4).
-
-put(Pathname) ->
-	?MODULE:put(Pathname, []).
-
-put(Pathname, Options) ->
-	?MODULE:put(manta:default_config(), Pathname, Options).
 
 put(Config=#manta_config{}, Pathname, Opts0) ->
 	{Headers0, Opts1} = manta:take_value(headers, Opts0, []),

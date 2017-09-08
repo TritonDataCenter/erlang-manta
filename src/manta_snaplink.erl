@@ -13,9 +13,11 @@
 -include("manta.hrl").
 
 %% API exports
--export([put/2]).
--export([put/3]).
--export([put/4]).
+-export([put/2,
+		 put/3,
+		 put/4]).
+
+-ignore_xref({put,2}).
 
 %%====================================================================
 %% API functions

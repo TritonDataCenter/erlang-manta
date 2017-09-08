@@ -13,16 +13,22 @@
 -include_lib("public_key/include/public_key.hrl").
 
 %% API exports
--export([decode/1]).
--export([decode/2]).
--export([decode_file/1]).
--export([decode_file/2]).
--export([encode/1]).
--export([encode/2]).
--export([fingerprint/1]).
--export([public/1]).
--export([sign/2]).
--export([sign_algorithm/1]).
+-export([decode/1,
+		 decode/2,
+		 decode_file/1,
+		 decode_file/2,
+		 encode/1,
+		 encode/2,
+		 fingerprint/1,
+		 public/1,
+		 sign/2,
+		 sign_algorithm/1]).
+
+-ignore_xref({decode,1}).
+-ignore_xref({decode,2}).
+-ignore_xref({encode,1}).
+-ignore_xref({encode,2}).
+-ignore_xref({public,1}).
 
 %%====================================================================
 %% API functions

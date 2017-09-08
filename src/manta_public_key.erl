@@ -13,10 +13,14 @@
 -include_lib("public_key/include/public_key.hrl").
 
 %% API exports
--export([decode/1]).
--export([decode_file/1]).
--export([encode/1]).
--export([fingerprint/1]).
+-export([decode/1,
+		 decode_file/1,
+		 encode/1,
+		 fingerprint/1]).
+
+-ignore_xref({decode,1}).
+-ignore_xref({decode_file,1}).
+-ignore_xref({encode,1}).
 
 -define(INLINE_INT2HEX(Int),
 	case Int of

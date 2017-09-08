@@ -13,12 +13,14 @@
 -include("manta.hrl").
 
 %% API exports
--export([decode/1]).
--export([decode/2]).
+-export([decode/1,
+		 decode/2]).
+
+-ignore_xref({decode,1}).
 
 %% Internal
--export([error_handler/3]).
--export([incomplete_handler/3]).
+-export([error_handler/3,
+		 incomplete_handler/3]).
 
 %%====================================================================
 %% API functions
