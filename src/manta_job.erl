@@ -14,43 +14,25 @@
 -include("manta.hrl").
 
 %% manta_handler callbacks
--export([init/3]).
--export([handle_response/2]).
--export([handle_download/2]).
--export([terminate/1]).
+-export([init/3,
+		 handle_response/2,
+		 handle_download/2,
+		 terminate/1]).
 
 %% API exports
--export([add_inputs/2]).
--export([add_inputs/3]).
--export([add_inputs/4]).
--export([cancel/1]).
--export([cancel/2]).
--export([cancel/3]).
--export([create/1]).
--export([create/2]).
--export([create/3]).
--export([end_input/1]).
--export([end_input/2]).
--export([end_input/3]).
--export([get/1]).
--export([get/2]).
--export([get/3]).
--export([get_errors/1]).
--export([get_errors/2]).
--export([get_errors/3]).
--export([get_failures/1]).
--export([get_failures/2]).
--export([get_failures/3]).
--export([get_input/1]).
--export([get_input/2]).
--export([get_input/3]).
--export([get_output/1]).
--export([get_output/2]).
--export([get_output/3]).
--export([list/0]).
--export([list/1]).
--export([list/2]).
--export([path/1]).
+-export([add_inputs/4,
+		 cancel/3,
+		 create/3,
+		 end_input/3,
+		 get/3,
+		 get_errors/3,
+		 get_failures/3,
+		 get_input/3,
+		 get_output/3,
+		 list/2,
+		 path/1]).
+
+-ignore_xref({path,1}).
 
 -define(MAX_LIMIT, 1000).
 
@@ -170,12 +152,6 @@ terminate(#state{default=Default}) ->
 %% API functions
 %%====================================================================
 
-add_inputs(JobPath, Inputs) ->
-	?MODULE:add_inputs(JobPath, Inputs, []).
-
-add_inputs(JobPath, Inputs, Options) ->
-	?MODULE:add_inputs(manta:default_config(), JobPath, Inputs, Options).
-
 add_inputs(Config=#manta_config{}, JobPath, Inputs, Opts0) ->
 	{Headers0, Opts1} = manta:take_value(headers, Opts0, []),
 	{Timeout, Opts2} = manta:take_value(timeout, Opts1, Config#manta_config.timeout),
@@ -187,23 +163,11 @@ add_inputs(Config=#manta_config{}, JobPath, Inputs, Opts0) ->
 	],
 	manta_httpc:request(Config, Path, post, Headers1, Body, Timeout, Opts2).
 
-cancel(JobPath) ->
-	?MODULE:cancel(JobPath, []).
-
-cancel(JobPath, Options) ->
-	?MODULE:cancel(manta:default_config(), JobPath, Options).
-
 cancel(Config=#manta_config{}, JobPath, Opts0) ->
 	{Headers, Opts1} = manta:take_value(headers, Opts0, []),
 	{Timeout, Opts2} = manta:take_value(timeout, Opts1, Config#manta_config.timeout),
 	Path = << (path(JobPath))/binary, "/live/cancel" >>,
 	manta_httpc:request(Config, Path, post, Headers, [], Timeout, Opts2).
-
-create(Job) ->
-	?MODULE:create(Job, []).
-
-create(Job, Options) ->
-	?MODULE:create(manta:default_config(), Job, Options).
 
 create(Config=#manta_config{}, Job, Opts0) ->
 	{Headers0, Opts1} = manta:take_value(headers, Opts0, []),
@@ -216,23 +180,11 @@ create(Config=#manta_config{}, Job, Opts0) ->
 	],
 	manta_httpc:request(Config, Path, post, Headers1, Body, Timeout, Opts2).
 
-end_input(JobPath) ->
-	?MODULE:end_input(JobPath, []).
-
-end_input(JobPath, Options) ->
-	?MODULE:end_input(manta:default_config(), JobPath, Options).
-
 end_input(Config=#manta_config{}, JobPath, Opts0) ->
 	{Headers, Opts1} = manta:take_value(headers, Opts0, []),
 	{Timeout, Opts2} = manta:take_value(timeout, Opts1, Config#manta_config.timeout),
 	Path = << (path(JobPath))/binary, "/live/in/end" >>,
 	manta_httpc:request(Config, Path, post, Headers, [], Timeout, Opts2).
-
-get(JobPath) ->
-	?MODULE:get(JobPath, []).
-
-get(JobPath, Options) ->
-	?MODULE:get(manta:default_config(), JobPath, Options).
 
 get(Config=#manta_config{}, JobPath, Opts0) ->
 	{Headers, Opts1} = manta:take_value(headers, Opts0, []),
@@ -240,23 +192,11 @@ get(Config=#manta_config{}, JobPath, Opts0) ->
 	Path = << (path(JobPath))/binary, "/live/status" >>,
 	manta_httpc:request(Config, Path, get, Headers, [], Timeout, Opts2).
 
-get_errors(JobPath) ->
-	?MODULE:get_errors(JobPath, []).
-
-get_errors(JobPath, Options) ->
-	?MODULE:get_errors(manta:default_config(), JobPath, Options).
-
 get_errors(Config=#manta_config{}, JobPath, Opts0) ->
 	{Headers, Opts1} = manta:take_value(headers, Opts0, []),
 	{Timeout, Opts2} = manta:take_value(timeout, Opts1, Config#manta_config.timeout),
 	Path = << (path(JobPath))/binary, "/live/err" >>,
 	manta_httpc:request(Config, Path, get, Headers, [], Timeout, Opts2).
-
-get_failures(JobPath) ->
-	?MODULE:get_failures(JobPath, []).
-
-get_failures(JobPath, Options) ->
-	?MODULE:get_failures(manta:default_config(), JobPath, Options).
 
 get_failures(Config=#manta_config{}, JobPath, Opts0) ->
 	{Headers, Opts1} = manta:take_value(headers, Opts0, []),
@@ -264,35 +204,17 @@ get_failures(Config=#manta_config{}, JobPath, Opts0) ->
 	Path = << (path(JobPath))/binary, "/live/fail" >>,
 	manta_httpc:request(Config, Path, get, Headers, [], Timeout, Opts2).
 
-get_input(JobPath) ->
-	?MODULE:get_input(JobPath, []).
-
-get_input(JobPath, Options) ->
-	?MODULE:get_input(manta:default_config(), JobPath, Options).
-
 get_input(Config=#manta_config{}, JobPath, Opts0) ->
 	{Headers, Opts1} = manta:take_value(headers, Opts0, []),
 	{Timeout, Opts2} = manta:take_value(timeout, Opts1, Config#manta_config.timeout),
 	Path = << (path(JobPath))/binary, "/live/in" >>,
 	manta_httpc:request(Config, Path, get, Headers, [], Timeout, Opts2).
 
-get_output(JobPath) ->
-	?MODULE:get_output(JobPath, []).
-
-get_output(JobPath, Options) ->
-	?MODULE:get_output(manta:default_config(), JobPath, Options).
-
 get_output(Config=#manta_config{}, JobPath, Opts0) ->
 	{Headers, Opts1} = manta:take_value(headers, Opts0, []),
 	{Timeout, Opts2} = manta:take_value(timeout, Opts1, Config#manta_config.timeout),
 	Path = << (path(JobPath))/binary, "/live/out" >>,
 	manta_httpc:request(Config, Path, get, Headers, [], Timeout, Opts2).
-
-list() ->
-	?MODULE:list([]).
-
-list(Options) ->
-	?MODULE:list(manta:default_config(), Options).
 
 list(Config=#manta_config{}, Opts0) ->
 	{Limit, Opts1} = manta:take_value(limit, Opts0, ?MAX_LIMIT),

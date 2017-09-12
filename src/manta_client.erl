@@ -16,6 +16,8 @@
 -export([request/6]).
 -export([init/7]).
 
+-ignore_xref({init,7}).
+
 -record(request, {
 	attempts   = undefined :: undefined | pos_integer(),
 	a_timeout  = undefined :: undefined | timeout(),

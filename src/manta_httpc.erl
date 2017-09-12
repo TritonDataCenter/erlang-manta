@@ -13,26 +13,34 @@
 -include("manta.hrl").
 
 %% HTTP API exports
--export([request/6]).
--export([request/7]).
--export([send_body_part/2]).
--export([send_body_part/3]).
--export([send_trailers/2]).
--export([send_trailers/3]).
+-export([request/6,
+		 request/7,
+		 send_body_part/2,
+		 send_body_part/3,
+		 send_trailers/2,
+		 send_trailers/3]).
+
+-ignore_xref({request,6}).
+-ignore_xref({send_body_part,3}).
+-ignore_xref({send_trailers,2}).
+-ignore_xref({send_trailers,3}).
 
 %% API exports
--export([account_headers/1]).
--export([account_headers/2]).
--export([make_path/2]).
--export([prepend_account_path/1]).
--export([prepend_account_path/2]).
--export([role_path/1]).
--export([role_path/2]).
--export([role_path/3]).
--export([urlencode_path/1]).
--export([user_path/1]).
--export([user_path/2]).
--export([user_path/3]).
+-export([%% account_headers/1,
+		 %% account_headers/2,
+		 make_path/2,
+		 %% prepend_account_path/1,
+		 %% prepend_account_path/2,
+		 %% role_path/1,
+		 role_path/2,
+		 role_path/3,
+		 %% urlencode_path/1,
+		 %% user_path/1,
+		 %% user_path/2,
+		 user_path/3]).
+
+-ignore_xref({role_path,2}).
+-ignore_xref({role_path,3}).
 
 %%====================================================================
 %% HTTP API functions
@@ -94,9 +102,6 @@ send_trailers({Pid, Window}, Trailers, Timeout) ->
 %% API functions
 %%====================================================================
 
-account_headers(Headers) ->
-	account_headers(manta:default_config(), Headers).
-
 account_headers(Config=#manta_config{agent=UserAgentVal, key=Key, key_id=KeyID}, Headers) ->
 	DateVal = iolist_to_binary(httpd_util:rfc1123_date()),
 	AuthorizationVal = <<
@@ -157,16 +162,10 @@ make_path(Path0, QS0) ->
 			<< Path1/binary, $?, QS4/binary >>
 	end.
 
-prepend_account_path(Path) ->
-	prepend_account_path(manta:default_config(), Path).
-
 prepend_account_path(#manta_config{subuser=undefined, user=User}, Path) ->
 	urlencode_path(<< $/, User/binary, $/, Path/binary >>);
 prepend_account_path(#manta_config{subuser=Subuser, user=User}, Path) ->
 	urlencode_path(<< $/, User/binary, $/, Subuser/binary, $/, Path/binary >>).
-
-role_path(Path) ->
-	role_path(manta:default_config(), Path).
 
 role_path(C=#manta_config{role=undefined}, Path) ->
 	user_path(C, Path);
@@ -188,9 +187,6 @@ urlencode_path(Path) ->
 		_ ->
 			<< P1/binary, $?, Q0/binary >>
 	end.
-
-user_path(Path) ->
-	user_path(manta:default_config(), Path).
 
 user_path(#manta_config{user=User}, << $~, $~, $/, Path/binary >>) ->
 	urlencode_path(<< $/, User/binary, $/, Path/binary >>);

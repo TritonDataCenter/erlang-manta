@@ -14,89 +14,173 @@
 -include_lib("public_key/include/public_key.hrl").
 
 %% API exports
+
 %%% Directories
--export([delete_directory/1]).
--export([delete_directory/2]).
--export([delete_directory/3]).
--export([list_directory/0]).
--export([list_directory/1]).
--export([list_directory/2]).
--export([list_directory/3]).
--export([put_directory/1]).
--export([put_directory/2]).
--export([put_directory/3]).
+-export([delete_directory/1,
+		 delete_directory/2,
+		 delete_directory/3,
+		 list_directory/0,
+		 list_directory/1,
+		 list_directory/2,
+		 list_directory/3,
+		 put_directory/1,
+		 put_directory/2,
+		 put_directory/3]).
+
+-ignore_xref({delete_directory,1}).
+-ignore_xref({delete_directory,2}).
+-ignore_xref({delete_directory,3}).
+-ignore_xref({list_directory,0}).
+-ignore_xref({list_directory,1}).
+-ignore_xref({list_directory,2}).
+-ignore_xref({list_directory,3}).
+-ignore_xref({put_directory,1}).
+-ignore_xref({put_directory,2}).
+-ignore_xref({put_directory,3}).
+
 %%% Objects
--export([delete_object/1]).
--export([delete_object/2]).
--export([delete_object/3]).
--export([get_metadata/1]).
--export([get_metadata/2]).
--export([get_metadata/3]).
--export([get_object/1]).
--export([get_object/2]).
--export([get_object/3]).
--export([object_path/1]).
--export([object_path/2]).
--export([object_path/3]).
--export([object_url/1]).
--export([object_url/2]).
--export([object_url/3]).
--export([put_metadata/2]).
--export([put_metadata/3]).
--export([put_metadata/4]).
--export([put_object/2]).
--export([put_object/3]).
--export([put_object/4]).
+-export([delete_object/1,
+		 delete_object/2,
+		 delete_object/3,
+		 get_metadata/1,
+		 get_metadata/2,
+		 get_metadata/3,
+		 get_object/1,
+		 get_object/2,
+		 get_object/3,
+		 object_path/1,
+		 object_path/2,
+		 object_path/3,
+		 object_url/1,
+		 object_url/2,
+		 object_url/3,
+		 put_metadata/2,
+		 put_metadata/3,
+		 put_metadata/4,
+		 put_object/2,
+		 put_object/3,
+		 put_object/4]).
+
+-ignore_xref({delete_object,1}).
+-ignore_xref({delete_object,2}).
+-ignore_xref({delete_object,3}).
+-ignore_xref({get_metadata,1}).
+-ignore_xref({get_metadata,2}).
+-ignore_xref({get_metadata,3}).
+-ignore_xref({get_object,1}).
+-ignore_xref({get_object,2}).
+-ignore_xref({get_object,3}).
+-ignore_xref({object_path,1}).
+-ignore_xref({object_path,2}).
+-ignore_xref({object_path,3}).
+-ignore_xref({object_url,1}).
+-ignore_xref({object_url,2}).
+-ignore_xref({object_url,3}).
+-ignore_xref({put_metadata,2}).
+-ignore_xref({put_metadata,3}).
+-ignore_xref({put_metadata,4}).
+-ignore_xref({put_object,2}).
+-ignore_xref({put_object,3}).
+-ignore_xref({put_object,4}).
+
 %%% SnapLinks
--export([put_snaplink/2]).
--export([put_snaplink/3]).
--export([put_snaplink/4]).
+-export([put_snaplink/2,
+		 put_snaplink/3,
+		 put_snaplink/4]).
+
+-ignore_xref({put_snaplink,2}).
+-ignore_xref({put_snaplink,3}).
+-ignore_xref({put_snaplink,4}).
+
 %%% Jobs
--export([add_job_inputs/2]).
--export([add_job_inputs/3]).
--export([add_job_inputs/4]).
--export([cancel_job/1]).
--export([cancel_job/2]).
--export([cancel_job/3]).
--export([create_job/1]).
--export([create_job/2]).
--export([create_job/3]).
--export([end_job_input/1]).
--export([end_job_input/2]).
--export([end_job_input/3]).
--export([get_job/1]).
--export([get_job/2]).
--export([get_job/3]).
--export([get_job_errors/1]).
--export([get_job_errors/2]).
--export([get_job_errors/3]).
--export([get_job_failures/1]).
--export([get_job_failures/2]).
--export([get_job_failures/3]).
--export([get_job_input/1]).
--export([get_job_input/2]).
--export([get_job_input/3]).
--export([get_job_output/1]).
--export([get_job_output/2]).
--export([get_job_output/3]).
--export([list_jobs/0]).
--export([list_jobs/1]).
--export([list_jobs/2]).
+-export([add_job_inputs/2,
+		 add_job_inputs/3,
+		 add_job_inputs/4,
+		 cancel_job/1,
+		 cancel_job/2,
+		 cancel_job/3,
+		 create_job/1,
+		 create_job/2,
+		 create_job/3,
+		 end_job_input/1,
+		 end_job_input/2,
+		 end_job_input/3,
+		 get_job/1,
+		 get_job/2,
+		 get_job/3,
+		 get_job_errors/1,
+		 get_job_errors/2,
+		 get_job_errors/3,
+		 get_job_failures/1,
+		 get_job_failures/2,
+		 get_job_failures/3,
+		 get_job_input/1,
+		 get_job_input/2,
+		 get_job_input/3,
+		 get_job_output/1,
+		 get_job_output/2,
+		 get_job_output/3,
+		 list_jobs/0,
+		 list_jobs/1,
+		 list_jobs/2]).
+
+-ignore_xref({add_job_inputs,2}).
+-ignore_xref({add_job_inputs,3}).
+-ignore_xref({add_job_inputs,4}).
+-ignore_xref({cancel_job,1}).
+-ignore_xref({cancel_job,2}).
+-ignore_xref({cancel_job,3}).
+-ignore_xref({create_job,1}).
+-ignore_xref({create_job,2}).
+-ignore_xref({create_job,3}).
+-ignore_xref({end_job_input,1}).
+-ignore_xref({end_job_input,2}).
+-ignore_xref({end_job_input,3}).
+-ignore_xref({get_job,1}).
+-ignore_xref({get_job,2}).
+-ignore_xref({get_job,3}).
+-ignore_xref({get_job_errors,1}).
+-ignore_xref({get_job_errors,2}).
+-ignore_xref({get_job_errors,3}).
+-ignore_xref({get_job_failures,1}).
+-ignore_xref({get_job_failures,2}).
+-ignore_xref({get_job_failures,3}).
+-ignore_xref({get_job_input,1}).
+-ignore_xref({get_job_input,2}).
+-ignore_xref({get_job_input,3}).
+-ignore_xref({get_job_output,1}).
+-ignore_xref({get_job_output,2}).
+-ignore_xref({get_job_output,3}).
+-ignore_xref({list_jobs,0}).
+-ignore_xref({list_jobs,1}).
+-ignore_xref({list_jobs,2}).
 
 %% Config API exports
--export([configure/1]).
--export([default_config/0]).
--export([new/1]).
--export([update/1]).
--export([user_agent/0]).
+-export([configure/1,
+		 default_config/0,
+		 new/1,
+		 update/1,
+		 user_agent/0]).
+
+-ignore_xref({configure,1}).
+-ignore_xref({default_config,0}).
+-ignore_xref({new,1}).
+-ignore_xref({update,1}).
+-ignore_xref({user_agent,0}).
 
 %% Utility API
--export([require/1]).
--export([start/0]).
--export([take_value/3]).
+-export([require/1,
+		 start/0,
+		 take_value/3]).
+
+-ignore_xref({require,1}).
+-ignore_xref({start,0}).
+-ignore_xref({take_value,3}).
 
 %% Internal API
 -export([get_value/3]).
+
+-ignore_xref({get_value,3}).
 
 %%====================================================================
 %% API functions
